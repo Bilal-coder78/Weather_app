@@ -12,6 +12,7 @@ import Wind_icon from "../assets/wind.png"
 function Weather() {
 
   let inputRef = useRef();
+  const [loading,setLoading] = useState(false)
   const [weatherdata, setWeatherdata] = useState(false)
 
   const allIcons = {
@@ -37,12 +38,14 @@ function Weather() {
       return;
     }
     try {
+      setLoading(true)
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${import.meta.env.VITE_APP_ID}`
 
       const response = await fetch(url);
       const data = await response.json()
       if (!response.ok) {
         alert(data.message);
+        setLoading(false)
         return;
       }
       console.log(data)
@@ -54,22 +57,29 @@ function Weather() {
         location: data.name,
         icon: icon,
       })
+      inputRef.current.value = "";
+      setLoading(false)
     } catch (error) {
       setWeatherdata(false)
+      setLoading(false)
       console.error("Error in fetching weather data")
     }
   }
 
   useEffect(() => {
-    Search("");
+    Search("Lahore");
   }, [])
 
   return (
     <div className='d-flex flex-column align-items-center p-5 rounded-3 weather'>
       <div className="d-flex align-items-center gap-2 search_bar">
-        <input className='border-0 fs-5 rounded-5' ref={inputRef} type="text" name="" placeholder='Search' />
+        <input className='border-0 fs-5 rounded-5' ref={inputRef} type="text" name="" placeholder='Search' onKeyDown={(e)=>e.key === "Enter" && Search(inputRef.current.value)} />
         <img src={Search_icon} alt="" onClick={() => Search(inputRef.current.value)} />
       </div>
+      {loading? <>
+        <p className='text-white fs-2 my-3'>Loading...</p>
+      </>:
+      weatherdata?<>
         <img src={weatherdata.icon} alt="" className='my-3 weather-icon' />
         <p className='temperature m-0'>{weatherdata.temperature}ºc</p>
         <p className='fs-1 location m-0'>{weatherdata.location}</p>
@@ -89,6 +99,8 @@ function Weather() {
             </div>
           </div>
         </div>
+      </> : <></>
+}
     </div>
   )
 }
